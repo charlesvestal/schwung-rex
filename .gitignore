@@ -7,3 +7,7 @@ dist/
 
 # Test output WAVs
 *.wav
+test/gen_test_wav
+test/rex-encode
+test/test_dwop_roundtrip
+test/test_rex_roundtrip
