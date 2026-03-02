@@ -155,14 +155,19 @@ static int decode_sdat(rex_file_t *rex, const uint8_t *data, uint32_t len)
         return -1;
     }
 
+    /* 24-bit files (bytes_per_sample==3) need extra shift to convert to 16-bit */
+    int out_shift = (rex->bytes_per_sample == 3) ? 9 : 1;
+
     if (is_stereo) {
         rex->pcm_samples = dwop_decode_stereo(data, (int)len,
-                                               rex->pcm_data, max_frames);
+                                               rex->pcm_data, max_frames,
+                                               out_shift);
         rex->pcm_channels = 2;
     } else {
         dwop_state_t dwop;
         dwop_init(&dwop, data, (int)len);
-        rex->pcm_samples = dwop_decode(&dwop, rex->pcm_data, max_frames);
+        rex->pcm_samples = dwop_decode(&dwop, rex->pcm_data, max_frames,
+                                        out_shift);
         rex->pcm_channels = 1;
     }
 
