@@ -81,7 +81,7 @@ void dwop_init(dwop_state_t *state, const uint8_t *data, int data_len)
         state->e[i] = DWOP_ENERGY_INIT;
 }
 
-int dwop_decode(dwop_state_t *state, int16_t *out, int max_samples)
+int dwop_decode(dwop_state_t *state, int16_t *out, int max_samples, int out_shift)
 {
     int n;
 
@@ -199,8 +199,8 @@ int dwop_decode(dwop_state_t *state, int16_t *out, int max_samples)
             state->e[i] = state->e[i] + as - (int32_t)((uint32_t)state->e[i] >> 5);
         }
 
-        /* 7. Output: un-double via arithmetic right shift */
-        out[n] = (int16_t)(state->S[0] >> 1);
+        /* 7. Output: right-shift to un-double and convert to 16-bit */
+        out[n] = (int16_t)(state->S[0] >> out_shift);
     }
 
     return n;
@@ -237,8 +237,9 @@ static void sch_init(dwop_ch_t *c)
     c->ba = 0;
 }
 
-/* Decode one sample from channel state using shared bit reader */
-static int16_t stereo_decode_one(dwop_ch_t *ch, dwop_br_t *br)
+/* Decode one sample from channel state using shared bit reader.
+ * Returns full-precision value (S[0] >> 1), caller applies output shift. */
+static int32_t stereo_decode_one(dwop_ch_t *ch, dwop_br_t *br)
 {
     /* 1. Find predictor with minimum energy */
     uint32_t min_e = (uint32_t)ch->e[0];
@@ -353,23 +354,28 @@ static int16_t stereo_decode_one(dwop_ch_t *ch, dwop_br_t *br)
         ch->e[i] = ch->e[i] + as - (int32_t)((uint32_t)ch->e[i] >> 5);
     }
 
-    return (int16_t)(ch->S[0] >> 1);
+    return ch->S[0] >> 1;
 }
 
 int dwop_decode_stereo(const uint8_t *data, int data_len,
-                       int16_t *out, int max_frames)
+                       int16_t *out, int max_frames, int out_shift)
 {
     dwop_br_t br = {data, data_len, 0, 0, 0};
     dwop_ch_t L, R;
     sch_init(&L);
     sch_init(&R);
 
+    /* For 24-bit (out_shift=9), we need an additional shift of 8 beyond the
+     * un-doubling shift of 1 that stereo_decode_one already applies. */
+    int extra_shift = out_shift - 1;
+
     int n;
     for (n = 0; n < max_frames; n++) {
-        int16_t l_out = stereo_decode_one(&L, &br);
-        int16_t r_delta = stereo_decode_one(&R, &br);
-        out[n * 2]     = l_out;
-        out[n * 2 + 1] = (int16_t)(l_out + r_delta);  /* R = L + delta */
+        int32_t l_val = stereo_decode_one(&L, &br);
+        int32_t r_delta = stereo_decode_one(&R, &br);
+        int32_t r_val = l_val + r_delta;  /* R = L + delta at full precision */
+        out[n * 2]     = (int16_t)(l_val >> extra_shift);
+        out[n * 2 + 1] = (int16_t)(r_val >> extra_shift);
     }
 
     return n;

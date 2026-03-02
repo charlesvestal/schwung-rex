@@ -63,7 +63,7 @@ int main(void) {
     /* Decode with our stereo decoder */
     int max_frames = (int)total_len;
     int16_t *decoded = malloc(max_frames * 2 * sizeof(int16_t));
-    int n_frames = dwop_decode_stereo(sdat, (int)sdat_len, decoded, max_frames);
+    int n_frames = dwop_decode_stereo(sdat, (int)sdat_len, decoded, max_frames, 1);
     printf("Decoded: %d stereo frames\n", n_frames);
 
     if (n_frames != max_frames) {

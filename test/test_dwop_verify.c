@@ -40,7 +40,7 @@ int main(void) {
     int16_t *decoded = malloc(total * sizeof(int16_t));
     dwop_state_t dwop;
     dwop_init(&dwop, sdat, (int)sdat_sz);
-    int n_decoded = dwop_decode(&dwop, decoded, total);
+    int n_decoded = dwop_decode(&dwop, decoded, total, 1);
 
     printf("Decoded: %d samples\n", n_decoded);
 
