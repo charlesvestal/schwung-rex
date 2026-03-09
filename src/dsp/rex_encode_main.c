@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <pwd.h>
 #include "wav_reader.h"
 #include "rex_writer.h"
 
@@ -36,12 +38,18 @@ static uint8_t *read_file(const char *path, long *size)
     return buf;
 }
 
+static void chown_to_ableton(const char *path) {
+    struct passwd *pw = getpwnam("ableton");
+    if (pw) chown(path, pw->pw_uid, pw->pw_gid);
+}
+
 static int write_file(const char *path, const uint8_t *data, size_t len)
 {
     FILE *f = fopen(path, "wb");
     if (!f) return -1;
     if (fwrite(data, 1, len, f) != len) { fclose(f); return -1; }
     fclose(f);
+    chown_to_ableton(path);
     return 0;
 }
 
