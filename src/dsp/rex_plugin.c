@@ -87,10 +87,13 @@ static int json_get_number(const char *json, const char *key, float *out) {
 
 static int json_get_string(const char *json, const char *key, char *out, int out_len) {
     char search[64];
-    snprintf(search, sizeof(search), "\"%s\":\"", key);
+    snprintf(search, sizeof(search), "\"%s\":", key);
     const char *pos = strstr(json, search);
     if (!pos) return -1;
     pos += strlen(search);
+    while (*pos == ' ') pos++;
+    if (*pos != '"') return -1;
+    pos++;
     const char *end = strchr(pos, '"');
     if (!end) return -1;
     int len = (int)(end - pos);
@@ -98,6 +101,20 @@ static int json_get_string(const char *json, const char *key, char *out, int out
     memcpy(out, pos, len);
     out[len] = '\0';
     return len;
+}
+
+/* Escape a string for JSON output (handles " and \) */
+static int json_escape(char *dst, int dst_len, const char *src) {
+    int i = 0;
+    while (*src && i < dst_len - 1) {
+        if (*src == '"' || *src == '\\') {
+            if (i + 2 >= dst_len) break;
+            dst[i++] = '\\';
+        }
+        dst[i++] = *src++;
+    }
+    dst[i] = '\0';
+    return i;
 }
 
 /* ------------------------------------------------------------------ */
@@ -816,11 +833,13 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
         return snprintf(buf, buf_len, "1");
     }
     else if (strcmp(key, "state") == 0) {
+        char escaped_name[256];
+        json_escape(escaped_name, sizeof(escaped_name), inst->file_name);
         return snprintf(buf, buf_len,
             "{\"file_name\":\"%s\",\"file_index\":%d,\"gain\":%.2f,\"start_note\":%d,"
             "\"attack\":%.3f,\"decay\":%.3f,\"sustain\":%.3f,\"release\":%.3f,"
             "\"mode\":\"%s\",\"choke\":\"%s\",\"transpose\":%d}",
-            inst->file_name, inst->file_index, inst->gain, inst->start_note,
+            escaped_name, inst->file_index, inst->gain, inst->start_note,
             inst->attack, inst->decay, inst->sustain, inst->release,
             inst->mode ? "gate" : "trigger", inst->choke ? "on" : "off",
             inst->transpose);
