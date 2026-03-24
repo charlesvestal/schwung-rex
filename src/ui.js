@@ -6,7 +6,7 @@
  */
 
 /* Shared utilities - absolute path for module location independence */
-import { createSoundGeneratorUI } from '/data/UserData/move-anything/shared/sound_generator_ui.mjs';
+import { createSoundGeneratorUI } from '/data/UserData/schwung/shared/sound_generator_ui.mjs';
 
 /* Create the UI */
 const ui = createSoundGeneratorUI({

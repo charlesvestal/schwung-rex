@@ -16,20 +16,20 @@ echo "=== Installing REX Player Module ==="
 
 # Deploy to Move - sound_generators subdirectory
 echo "Copying module to Move..."
-ssh ableton@move.local "mkdir -p /data/UserData/move-anything/modules/sound_generators/rex"
-scp -r dist/rex/* ableton@move.local:/data/UserData/move-anything/modules/sound_generators/rex/
+ssh ableton@move.local "mkdir -p /data/UserData/schwung/modules/sound_generators/rex"
+scp -r dist/rex/* ableton@move.local:/data/UserData/schwung/modules/sound_generators/rex/
 
 # Create loops directory for user REX files
 echo "Creating loops directory..."
-ssh ableton@move.local "mkdir -p /data/UserData/move-anything/modules/sound_generators/rex/loops"
+ssh ableton@move.local "mkdir -p /data/UserData/schwung/modules/sound_generators/rex/loops"
 
 # Set permissions so Module Store can update later
 echo "Setting permissions..."
-ssh ableton@move.local "chmod -R a+rw /data/UserData/move-anything/modules/sound_generators/rex && chmod +x /data/UserData/move-anything/modules/sound_generators/rex/rex-encode"
+ssh ableton@move.local "chmod -R a+rw /data/UserData/schwung/modules/sound_generators/rex && chmod +x /data/UserData/schwung/modules/sound_generators/rex/rex-encode"
 
 echo ""
 echo "=== Install Complete ==="
-echo "Module installed to: /data/UserData/move-anything/modules/sound_generators/rex/"
+echo "Module installed to: /data/UserData/schwung/modules/sound_generators/rex/"
 echo ""
 echo "Copy .rx2/.rex files to the 'loops' directory on the device."
 echo "Restart Schwung to load the new module."
