@@ -309,17 +309,6 @@ static void scan_rex_files(rex_instance_t *inst, const char *dir_path)
 
 static int load_rex_file(rex_instance_t *inst, const char *path)
 {
-    /* Unload previous */
-    if (inst->rex_loaded) {
-        rex_free(&inst->rex);
-        inst->rex_loaded = 0;
-    }
-
-    /* Stop all voices */
-    for (int i = 0; i < MAX_VOICES; i++) {
-        inst->voices[i].active = 0;
-    }
-
     /* Read file into memory */
     FILE *fp = fopen(path, "rb");
     if (!fp) {
@@ -354,14 +343,27 @@ static int load_rex_file(rex_instance_t *inst, const char *path)
         return -1;
     }
 
-    /* Parse */
-    int rc = rex_parse(&inst->rex, buf, file_size);
+    /* Parse into temporary struct so we don't destroy current audio on failure */
+    rex_file_t new_rex;
+    int rc = rex_parse(&new_rex, buf, file_size);
     free(buf);  /* parser copies what it needs */
 
     if (rc != 0) {
-        snprintf(inst->load_error, sizeof(inst->load_error), "%s", inst->rex.error);
+        snprintf(inst->load_error, sizeof(inst->load_error), "%s", new_rex.error);
         plugin_log(inst->load_error);
+        rex_free(&new_rex);
         return -1;
+    }
+
+    /* Success — now swap: free old data and replace */
+    if (inst->rex_loaded) {
+        rex_free(&inst->rex);
+    }
+    inst->rex = new_rex;
+
+    /* Stop all voices (slice layout changed) */
+    for (int i = 0; i < MAX_VOICES; i++) {
+        inst->voices[i].active = 0;
     }
 
     inst->rex_loaded = 1;
