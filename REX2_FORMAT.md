@@ -475,22 +475,67 @@ First decoded samples at the audio boundary:
 
 ## Implementation Methodology
 
-This is an independent, clean-room implementation. No Reason Studios source code
-was used or referenced. The implementation was derived entirely from:
+### Motivation: interoperability on an unsupported platform
+
+Schwung runs on arm64 Linux. The official REX support library (the "REX Shared
+Library" / REX SDK) is distributed only as a macOS framework (Mach-O); there is
+no Linux build, and it cannot run on the target platform. Reading REX2 files on
+arm64 Linux therefore requires an independently written decoder — this is a
+genuine interoperability necessity, and it is the reason this work exists.
+
+### How the decoder was produced
+
+This is an **independent reverse-engineering effort for interoperability**, not a
+clean-room implementation. The term "clean room" specifically describes a
+two-team process in which one team writes a specification from the original and a
+separate team implements only from that specification; that wall was not used
+here. This decoder was written directly by a single author from observation of
+the format. It was derived from:
 
 1. **Binary analysis** of `.rx2` files — inspecting the IFF container structure,
    chunk tags, and compressed bitstream data directly
 2. **Black-box testing** — feeding known inputs through the reference decoder and
    observing outputs to infer the algorithm's behavior
-3. **Disassembly of the public macOS framework** — examining the compiled ARM64
-   machine code of `DecompressMono` and `DecompressStereo` in the REX Shared
-   Library to confirm algorithmic details (predictor mapping, range coder
-   parameters, stereo L/delta scheme)
+3. **Disassembly and LLDB tracing of the public macOS framework** — examining the
+   compiled ARM64 machine code of `DecompressMono` and `DecompressStereo` in the
+   REX Shared Library to confirm algorithmic details (predictor mapping, range
+   coder parameters, stereo L/delta scheme)
 
-No proprietary source code, header files, or SDK libraries are included in or
-linked by this implementation. The REX2 file format is a creation of
-Propellerhead Software (now Reason Studios AB). ReCycle is a trademark of Reason
-Studios AB.
+No proprietary source code, header files, or SDK libraries were copied, included,
+linked, or otherwise incorporated. All shipped code is the author's own original
+expression.
+
+### Legal basis and open questions
+
+This section describes the basis for the work and the questions that remain open.
+It is not a legal conclusion and not legal advice.
+
+The recognized lawful purpose here is interoperability. The EU Software Directive
+(2009/24/EC, Art. 6) permits decompilation to achieve the interoperability of an
+independently created program, subject to conditions: the necessary information
+was not otherwise readily available, the activity was limited to the parts
+necessary to achieve interoperability, and the results are not used to create a
+program substantially similar in its expression. In the United States, case law
+on intermediate copying for interoperability — notably *Sega v. Accolade* and
+*Sony v. Connectix* — has treated such copying as fair use.
+
+Separately, a file format itself — its facts and structure — and the observable
+behavior of an algorithm are generally not subject to copyright; the protectable
+expression at issue is the original source code, which here is the author's own.
+
+Honest open questions remain. The macOS framework was likely distributed under a
+EULA that restricts reverse engineering. The EU interoperability exception can
+override such a contractual term where the purpose is genuine interoperability,
+but the precise scope of that override is debated and depends on facts and
+jurisdiction. Nothing above should be read as asserting that this work is settled
+to be lawful in every forum.
+
+### Trademark and attribution
+
+The REX2 file format is a creation of Propellerhead Software (now Reason Studios
+AB). ReCycle is a trademark of Reason Studios AB. This project is independent and
+is not affiliated with, authorized by, or endorsed by Propellerhead Software or
+Reason Studios AB.
 
 ## Verification
 

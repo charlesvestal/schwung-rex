@@ -24,7 +24,7 @@ Upload `.rx2` files through the Schwung file manager, or copy them directly to t
 
 The REX2 file format (`.rx2`, `.rex`, `.rcy`) is a proprietary format created by Propellerhead Software (now [Reason Studios](https://www.reasonstudios.com/)). ReCycle is a trademark of Reason Studios AB.
 
-This module is an independent, clean-room implementation. It does not contain any Reason Studios code. The file format and DWOP codec were reverse-engineered for interoperability by analyzing the binary structure of REX2 files. See [REX2_FORMAT.md](REX2_FORMAT.md) for the full specification and methodology.
+This module is an independent reverse-engineering effort for interoperability, not a clean-room implementation. It does not contain any Reason Studios code. Because the official REX Shared Library ships only as a macOS framework and cannot run on Schwung's arm64 Linux target, an independent decoder is the only way to read REX2 files on that platform. The file format and DWOP codec were reverse-engineered by analyzing the binary structure of REX2 files. See [REX2_FORMAT.md](REX2_FORMAT.md) for the full specification, methodology, and a note on the legal basis (not legal advice).
 
 ## License
 
